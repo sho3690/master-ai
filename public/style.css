@@ -25,7 +25,7 @@ body.idle { overflow: hidden; }
 .stage machine-dream { height: 100%; }
 /* 会話中は上部に固定し、スクロールしても常に見えるようにする */
 body.active .stage {
-  position: sticky; top: 0; z-index: 2;
+  position: sticky; top: 0; z-index: 2; background: var(--bg);
   height: 34vh; height: 34svh;
 }
 body.active .stage::after {
@@ -33,6 +33,11 @@ body.active .stage::after {
   background: linear-gradient(var(--bg), transparent); pointer-events: none;
 }
 .session { scroll-margin-top: calc(34svh + 12px); }
+/* iPhone のステータスバー部分に、下を流れる文字が透けないようにする */
+body.active::before {
+  content: ""; position: fixed; top: 0; left: 0; right: 0; z-index: 3;
+  height: env(safe-area-inset-top, 0px); background: var(--bg); pointer-events: none;
+}
 
 /* ---- 入力 */
 .dock {
@@ -150,7 +155,8 @@ body.idle .thread { display: none; }
 .body table { display: block; overflow-x: auto; border-collapse: collapse; margin: .8em 0; font-size: 14px; }
 .body th, .body td { padding: 6px 12px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
 
-.turn.error .body { color: var(--error); font-size: 13px; }
+.turn.error .body { color: var(--error); font-size: 13px; white-space: pre-line; }
+.body .note { color: var(--muted); font-size: 13px; animation: breathe 1.8s ease-in-out infinite; }
 .turn.aborted .body::after { content: "（中断）"; color: var(--muted); font-size: 12px; margin-left: 4px; }
 
 .turn.conclusion {

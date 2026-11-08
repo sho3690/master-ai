@@ -108,6 +108,7 @@ function addTurn(session, { name, model, color, conclusion }) {
   let text = '', queued = false;
   return {
     get text() { return text; },
+    note(msg) { if (!text) body.innerHTML = `<span class="note">${esc(msg)}</span>`; },
     push(t) {
       text += t;
       if (queued) return; queued = true;
@@ -202,16 +203,37 @@ const source = (seat, system, prompt, signal) => mode === 'server'
   ? viaServer(seat, system, prompt, signal)
   : streamProvider(seat.provider, { key: settings.keys[seat.provider], model: seat.model }, system, prompt, signal);
 
+const wait = (ms, signal) => new Promise((resolve, reject) => {
+  const t = setTimeout(resolve, ms);
+  signal.addEventListener('abort', () => { clearTimeout(t); reject(new Error('aborted')); }, { once: true });
+});
+
+// 混雑（429・5xx・空応答）は、まだ何も話していなければ少し待って自動で再試行する
+const RETRY_DELAYS = [3000, 8000];
+
 async function speak(seat, system, prompt, view, signal) {
-  try {
-    for await (const t of source(seat, system, prompt, signal)) view.push(t);
-    if (!view.text.trim()) throw new Error('応答が空でした');
-    view.end();
-    return view.text.trim();
-  } catch (e) {
-    if (signal.aborted) { view.end('aborted'); return null; }
-    view.end('error', `${seat.name} に接続できませんでした — ${e.message}（質問欄に「/key」と入力すると設定を変えられます）`);
-    return null;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      for await (const t of source(seat, system, prompt, signal)) view.push(t);
+      if (!view.text.trim()) throw new Error('応答が空でした');
+      view.end();
+      return view.text.trim();
+    } catch (e) {
+      if (signal.aborted) { view.end('aborted'); return null; }
+      const msg = e.message || String(e);
+      const daily = /per-day|per day/i.test(msg);
+      const busy = !daily && (/^(408|429|5\d\d)\b/.test(msg) || /rate.?limit|overloaded|temporarily|Provider returned error|応答が空/i.test(msg));
+      if (busy && !view.text && attempt < RETRY_DELAYS.length) {
+        view.note(`混雑しているため再試行しています（${attempt + 2}/${RETRY_DELAYS.length + 1}回目）`);
+        try { await wait(RETRY_DELAYS[attempt], signal); } catch { view.end('aborted'); return null; }
+        continue;
+      }
+      const hint = daily ? '今日の無料枠を使い切りました。明日になるか、OpenRouter で10ドル分のクレジットを購入すると回数が増えます。'
+        : busy ? 'このモデルが混雑しています。少し時間をおくか、質問欄に「/key」と入力して別のモデルに替えてください。'
+        : '質問欄に「/key」と入力すると設定を変えられます。';
+      view.end('error', `${seat.name} に接続できませんでした — ${msg}\n${hint}`);
+      return null;
+    }
   }
 }
 
