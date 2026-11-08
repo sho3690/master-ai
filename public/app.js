@@ -355,6 +355,9 @@ function loadModels() {
         free: m.id.endsWith(':free') || (Number(m.pricing?.prompt) === 0 && Number(m.pricing?.completion) === 0),
         pin: Number(m.pricing?.prompt) * 1e6, pout: Number(m.pricing?.completion) * 1e6,
       })).sort((a, b) => b.created - a.created);
+      // 「:free」版にはHugging FaceのIDが付いていないことがあるので、元のモデルがオープンウェイトなら同じ扱いにする
+      const openBase = new Set(models.filter(m => m.open).map(m => m.id.replace(/:free$/, '')));
+      for (const m of models) if (!m.open && openBase.has(m.id.replace(/:free$/, ''))) m.open = true;
       models.anyOpen = models.some(m => m.open);
       return models;
     })
