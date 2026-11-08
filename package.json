@@ -1,0 +1,12 @@
+{
+  "name": "master-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ChatGPT・Claude・Gemini が議論して結論を出すマスターAI",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node server.js",
+    "mock": "MOCK=1 node server.js"
+  }
+}
