@@ -339,6 +339,20 @@ form.addEventListener('submit', e => {
   start(q);
 });
 
+// 会話をリセット: 議論を止め、ログと文脈を消してトップの状態に戻す
+$('#reset').addEventListener('click', () => {
+  controller?.abort();
+  pending = null;
+  history.length = 0;
+  thread.replaceChildren();
+  scrollTo(0, 0);
+  document.body.classList.replace('active', 'idle');
+  setStatus('');
+  holdShape(false);
+  become('sphere', MASTER);
+  input.focus();
+});
+
 // ---------------------------------------------------------------- OpenRouter のモデル一覧
 let models = null, modelsLoading = null;
 function loadModels() {

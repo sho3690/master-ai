@@ -80,6 +80,15 @@ body.active .dock {
 .send:hover:not(:disabled) { transform: scale(1.06); }
 .send:disabled { opacity: .28; cursor: default; }
 .send:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.reset {
+  flex: none; width: 42px; height: 42px; border-radius: 50%;
+  display: none; place-items: center; cursor: pointer;
+  color: var(--muted); background: transparent; border: 1px solid var(--line);
+  transition: color .2s, border-color .2s;
+}
+body.active .reset { display: grid; }
+.reset:hover { color: var(--text); border-color: rgba(160, 175, 230, .35); }
+.reset:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 .send .i-stop, body.running .send .i-send { display: none; }
 body.running .send .i-stop { display: block; }
 
