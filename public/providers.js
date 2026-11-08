@@ -7,6 +7,15 @@ export const DEFAULT_MODELS = {
 };
 
 export const API = {
+  openrouter: ({ key, model }, system, prompt) => ({
+    url: 'https://openrouter.ai/api/v1/chat/completions',
+    headers: { authorization: `Bearer ${key}` },
+    body: { model, stream: true, messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }] },
+    pick: d => {
+      if (d.error) throw new Error(d.error.message || 'OpenRouter error');
+      return d.choices?.[0]?.delta?.content || '';
+    },
+  }),
   openai: ({ key, model }, system, prompt) => ({
     url: 'https://api.openai.com/v1/chat/completions',
     headers: { authorization: `Bearer ${key}` },

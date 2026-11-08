@@ -27,21 +27,46 @@
 
   <dialog id="settings" class="settings" aria-labelledby="settings-title">
     <form id="settings-form" method="dialog">
-      <h2 id="settings-title">APIキー</h2>
-      <p class="hint">キーはこのブラウザ内にだけ保存され、各社のAPIへ直接送られます。使うAIだけ入力すれば動きます（2つ以上で議論になります）。</p>
-      <div id="settings-fields"></div>
+      <h2 id="settings-title">設定</h2>
+
+      <section id="keys-section" class="group">
+        <h3>APIキー</h3>
+        <p class="hint">このブラウザ内にだけ保存され、各サービスのAPIへ直接送られます。</p>
+        <label class="key">
+          <span>OpenRouter <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">キーを取得</a></span>
+          <input name="key-openrouter" type="password" placeholder="sk-or-..." autocomplete="off" spellcheck="false">
+        </label>
+        <details>
+          <summary>公式API（OpenAI・Anthropic・Google）</summary>
+          <label class="key"><span>OpenAI</span><input name="key-openai" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false"></label>
+          <label class="key"><span>Anthropic</span><input name="key-claude" type="password" placeholder="sk-ant-..." autocomplete="off" spellcheck="false"></label>
+          <label class="key"><span>Google</span><input name="key-gemini" type="password" placeholder="AI..." autocomplete="off" spellcheck="false"></label>
+        </details>
+      </section>
+
+      <section class="group">
+        <h3>議論するAI</h3>
+        <div id="seats"></div>
+        <div class="pick-tools">
+          <button type="button" id="auto-pick" class="small">おまかせで選ぶ</button>
+          <label class="check"><input type="checkbox" name="open-only" checked> オープンウェイトのみ</label>
+          <label class="check"><input type="checkbox" name="free-only"> 無料のみ</label>
+        </div>
+      </section>
+
       <div class="row">
         <label>結論をまとめるAI
-          <select name="master"><option value="claude">Claude</option><option value="openai">ChatGPT</option><option value="gemini">Gemini</option></select>
+          <select name="master"><option value="0">1番目</option><option value="1">2番目</option><option value="2">3番目</option></select>
         </label>
         <label>議論のラウンド
           <select name="rounds"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
         </label>
       </div>
+
       <div class="actions">
         <button class="primary" value="save">保存</button>
         <button value="cancel" formnovalidate>閉じる</button>
-        <button class="ghost" value="clear" formnovalidate>キーを消去</button>
+        <button class="ghost" value="clear" formnovalidate>設定を消去</button>
       </div>
     </form>
   </dialog>

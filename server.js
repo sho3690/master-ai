@@ -26,12 +26,13 @@ const PROVIDERS = {
   openai: { key: env.OPENAI_API_KEY, model: env.OPENAI_MODEL || DEFAULT_MODELS.openai },
   claude: { key: env.ANTHROPIC_API_KEY, model: env.CLAUDE_MODEL || DEFAULT_MODELS.claude },
   gemini: { key: env.GEMINI_API_KEY, model: env.GEMINI_MODEL || DEFAULT_MODELS.gemini },
+  openrouter: { key: env.OPENROUTER_API_KEY, model: '' },
 };
 const enabled = id => id in PROVIDERS && (MOCK || Boolean(PROVIDERS[id].key));
 
 // ---- 動作確認用のダミー応答（MOCK=1）
 async function* streamMock(id, system, prompt, signal) {
-  const name = { openai: 'ChatGPT', claude: 'Claude', gemini: 'Gemini' }[id];
+  const name = (system.match(/あなたは「([^」]+)」/) || [])[1] || id;
   const isMaster = system.startsWith('あなたはマスターAI');
   const text = isMaster
     ? `## 結論\n**これはダミーの結論です。** 3者の議論を踏まえ、段階的に進めるのが妥当です。\n\n## 根拠\n- ChatGPT は実行速度を重視\n- Claude はリスクの洗い出しを重視\n- Gemini はデータでの検証を提案\n\n## 残る論点\n- 予算配分の優先度`
@@ -66,14 +67,14 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && url.pathname === '/api/turn') {
     let body;
     try { body = await readJson(req); } catch { res.writeHead(400); return res.end(); }
-    const { provider, system = '', prompt = '' } = body;
+    const { provider, model, system = '', prompt = '' } = body;
     if (!PROVIDERS[provider] || !enabled(provider)) { res.writeHead(400); return res.end(); }
 
     const ac = new AbortController();
     res.on('close', () => ac.abort());
     res.writeHead(200, { 'content-type': 'application/x-ndjson; charset=utf-8', 'cache-control': 'no-cache' });
     try {
-      const gen = MOCK ? streamMock(provider, system, prompt, ac.signal) : streamProvider(provider, PROVIDERS[provider], system, prompt, ac.signal);
+      const gen = MOCK ? streamMock(provider, system, prompt, ac.signal) : streamProvider(provider, { key: PROVIDERS[provider].key, model: model || PROVIDERS[provider].model }, system, prompt, ac.signal);
       for await (const t of gen) res.write(JSON.stringify({ t }) + '\n');
     } catch (e) {
       if (!ac.signal.aborted) res.write(JSON.stringify({ error: e.message || String(e) }) + '\n');
