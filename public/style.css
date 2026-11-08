@@ -23,7 +23,16 @@ body.idle { overflow: hidden; }
 /* ---- マスターAI（幾何学） */
 .stage { height: 100vh; height: 100svh; transition: height 1.1s var(--ease); }
 .stage machine-dream { height: 100%; }
-body.active .stage { height: 40vh; height: 40svh; }
+/* 会話中は上部に固定し、スクロールしても常に見えるようにする */
+body.active .stage {
+  position: sticky; top: 0; z-index: 2;
+  height: 34vh; height: 34svh;
+}
+body.active .stage::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 36px;
+  background: linear-gradient(var(--bg), transparent); pointer-events: none;
+}
+.session { scroll-margin-top: calc(34svh + 12px); }
 
 /* ---- 入力 */
 .dock {
@@ -238,7 +247,8 @@ body.idle .thread { display: none; }
   .question { font-size: 18px; }
   .turn { padding-left: 14px; }
   .turn.conclusion { padding: 18px; }
-  body.active .stage { height: 32vh; height: 32svh; }
+  body.active .stage { height: 26vh; height: 26svh; }
+  .session { scroll-margin-top: calc(26svh + 12px); }
   .seat { grid-template-columns: 22px 1fr; }
   .seat .seat-model { grid-column: 2; }
   .settings form { padding: 22px 18px 18px; }
